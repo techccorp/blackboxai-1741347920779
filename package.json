@@ -1,0 +1,14 @@
+{
+  "name": "le-repertoire",
+  "version": "1.0.0",
+  "description": "Le Repertoire Recipe Application",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/tailwind.compiled.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/tailwind.compiled.css --watch"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2"
+  }
+}

@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Business Onboarding Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+    }
+    /* Retain existing input & error styling */
+    .af-input {
+      width: 100%;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #374151;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+    .af-input:focus {
+      outline: 2px solid #6366f1;
+      outline-offset: -2px;
+      border-color: transparent;
+    }
+    .input-error {
+      border-color: #ef4444;
+    }
+    .error-message {
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    /* Modal & autocomplete styling */
+    .modal-overlay {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+    }
+    .autocomplete-active {
+      background-color: #e9e9e9 !important;
+    }
+    .venue-button.selected {
+      background-color: #4F46E5;
+      color: white;
+    }
+    .work-area-button.selected {
+      border-color: #10B981;
+      color: #10B981;
+      font-weight: 600;
+    }
+    /* System-generated field styling */
+    .system-generated {
+      background-color: #f3f4f6;
+      cursor: not-allowed;
+      border-color: #d1d5db;
+      color: #6b7280;
+    }
+    .system-generated-label {
+      display: flex;
+      align-items: center;
+    }
+    .system-generated-label::after {
+      content: "Auto-generated";
+      margin-left: 0.5rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+      background-color: #e5e7eb;
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <!-- Google Extended Component Loader for Address Selection -->
+  <gmpx-api-loader key="AIzaSyBcgQJ39fhrQhn1TxraDIoZyp8JHs6d_zk" solution-channel="GMP_QB_addressselection_v4_cABC"></gmpx-api-loader>
+  
+  <!-- Main Modal Container -->
+  <div class="modal-overlay fixed inset-0 flex items-center justify-center">
+    <div class="bg-white w-full max-w-[2070px] h-[600px] rounded-lg shadow-xl flex relative overflow-auto">
+      <a href="#" id="backBtn" class="absolute top-4 left-4 text-orange-500 text-sm flex items-center opacity-0 pointer-events-none transition-opacity duration-200" aria-hidden="true">
+        <i class="fas fa-chevron-left mr-2"></i>Back
+      </a>
+      <div id="leftSection" class="w-2/5 p-10 flex flex-col justify-between bg-white"></div>
+      <div id="rightSection" class="w-3/5 p-10 bg-gray-50 flex flex-col justify-center items-center"></div>
+      <a href="#" id="nextBtn" class="absolute bottom-4 right-4 text-orange-500 text-sm flex items-center">
+        Next <i class="fas fa-chevron-right ml-2"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Venue Address Selection Modal (Hidden by default) -->
+  <div id="venueAddressModal" class="fixed inset-0 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-200" aria-hidden="true">
+    <div class="bg-white w-full max-w-3xl h-[500px] rounded-lg shadow-xl relative overflow-auto">
+      <a href="#" id="closeVenueAddressModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">
+        <i class="fas fa-times"></i>
+      </a>
+      <div class="w-full h-full">
+        <gmpx-split-layout row-layout-min-width="600" class="w-full h-full">
+          <div class="panel p-4" slot="fixed">
+            <div class="flex items-center mb-2">
+              <img class="w-6 h-6 mr-2" src="https://fonts.gstatic.com/s/i/googlematerialicons/location_pin/v5/24px.svg" alt="">
+              <span class="font-medium">Address Selection</span>
+            </div>
+            <input type="text" placeholder="Address" id="venue-location-input" class="w-full p-2 border rounded mb-2"/>
+            <input type="text" placeholder="Apt, Suite, etc (optional)" id="venue-apt-input" class="w-full p-2 border rounded mb-2"/>
+            <input type="text" placeholder="City" id="venue-locality-input" class="w-full p-2 border rounded mb-2"/>
+            <div class="flex space-x-2 mb-2">
+              <input type="text" placeholder="State/Province" id="venue-administrative_area_level_1-input" class="w-1/2 p-2 border rounded"/>
+              <input type="text" placeholder="Zip/Postal code" id="venue-postal_code-input" class="w-1/2 p-2 border rounded"/>
+            </div>
+            <input type="text" placeholder="Country" id="venue-country-input" class="w-full p-2 border rounded mb-2"/>
+            <button id="venue-use-address-btn" class="bg-purple-600 text-white px-4 py-2 rounded w-full">Use Address</button>
+          </div>
+          <gmp-map slot="main" class="w-full h-full">
+            <gmp-advanced-marker></gmp-advanced-marker>
+          </gmp-map>
+        </gmpx-split-layout>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***** STATE & UTILITY FUNCTIONS *****/
+    const state = {
+      // Company details
+      company_id: "",
+      company_name: "",
+      Director_name: "",
+      ACN: "",
+      admin_user_name: "",
+      admin_user_id: "",
+      head_office: {}, // Will hold head office details from the address component
+      // Venue & work area state
+      venues: [],
+      selectedVenue: 0,
+      workAreas: new Map(), // Map of venue index to selected work areas array
+      // Entity type tracking
+      entity_type: null, // 'single-venue', 'multi-venue', or 'multi-outlet'
+      venue_count: 0,
+      location_count: 0
+    };
+
+    let currentStep = 1;
+    const DEFAULT_WORK_AREAS = ['Restaurant', 'Bar', 'Kitchen', 'Office'];
+    
+    // Area code mapping for validation (matches the Python IDService)
+    const AREA_CODES = {
+      "admin": "A",
+      "bar": "B",
+      "cleaners": "C",
+      "functions": "F",
+      "guest services": "G",
+      "house keeping": "H",
+      "kitchen": "K",
+      "maintenance": "M",
+      "operations": "O",
+      "restaurant": "R",
+      "store room": "S",
+      "venue": "V"
+    };
+
+    /***** ELEMENT VISIBILITY FUNCTIONS *****/
+    function showElement(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('opacity-0', 'pointer-events-none');
+      el.setAttribute('aria-hidden', 'false');
+    }
+
+    function hideElement(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('opacity-0', 'pointer-events-none');
+      el.setAttribute('aria-hidden', 'true');
+    }
+
+    /***** ID GENERATION FUNCTIONS (MATCHING BACKEND ID_SERVICE) *****/
+    function generateCompanyId() {
+      // Generate a random 4-digit company number (mirroring Python IDService)
+      const companyNumber = Math.floor(1000 + Math.random() * 9000);
+      return `CNY-${companyNumber}`;
+    }
+
+    function generateVenueId(companyId) {
+      // Extract company number and generate 2-digit venue suffix
+      const companyNumber = companyId.split('-')[1];
+      // Random between 10-99 (with +11 pattern as in IDService)
+      const venueNumber = Math.floor(10 + Math.random() * 90); 
+      return `VEN-${companyNumber}-${venueNumber.toString().padStart(2, '0')}`;
+    }
+
+    function generateWorkAreaId(companyId, venueId) {
+      // Extract components for structured ID generation
+      const companyNumber = companyId.split('-')[1];
+      const venueNumber = venueId.split('-')[2];
+      const areaNumber = Math.floor(10 + Math.random() * 90);
+      return `WAI-${companyNumber}-${venueNumber}${areaNumber.toString().padStart(2, '0')}`;
+    }
+
+    function generateAdminUserId(companyId) {
+      // Generate admin user ID using company prefix
+      const companyNumber = companyId.split('-')[1];
+      const adminNumber = Math.floor(1000 + Math.random() * 9000);
+      return `CNY-${companyNumber}-${adminNumber}`;
+    }
+
+    function generatePayrollId(workAreaName) {
+      // Generate payroll ID based on work area code (DX-XXXXXX)
+      const areaCode = AREA_CODES[workAreaName.toLowerCase()] || "X";
+      const employeeNumber = Math.floor(100000 + Math.random() * 900000);
+      return `D${areaCode}-${employeeNumber}`;
+    }
+
+    function generateLinkingId(companyId, workAreaId) {
+      // Generate linking ID in format EMP-XXXX-YYYY-ZZZZZZ
+      const companyNumber = companyId.split('-')[1];
+      const workAreaNumber = workAreaId.split('-')[2];
+      const employeeNumber = Math.floor(100000 + Math.random() * 900000);
+      return `EMP-${companyNumber}-${workAreaNumber}-${employeeNumber}`;
+    }
+
+    function validateACN(acn) {
+      const cleanACN = acn.replace(/\s/g, '');
+      if (!/^\d{9}$/.test(cleanACN)) return false;
+      const weights = [8, 7, 6, 5, 4, 3, 2, 1];
+      const digits = cleanACN.split('').map(Number);
+      const weightedSum = digits.slice(0, 8).reduce((sum, d, i) => sum + d * weights[i], 0);
+      const remainder = weightedSum % 10;
+      let checkDigit = 10 - remainder;
+      if (checkDigit === 10) checkDigit = 0;
+      return checkDigit === digits[8];
+    }
+
+    function validatePayrollId(payrollId, workAreaName) {
+      // Validate payroll ID format against work area code (matching Python validator)
+      const areaCode = AREA_CODES[workAreaName.toLowerCase()];
+      if (!areaCode) return false;
+      const pattern = new RegExp(`^D${areaCode}-\\d{6}$`);
+      return pattern.test(payrollId);
+    }
+
+    function validateAusPhone(phone) {
+      const normalized = phone.replace(/[\s\-\(\)]/g, '');
+      const patterns = [
+        /^0[2378]\d{8}$/,
+        /^04\d{8}$/,
+        /^(1300|1800)\d{6}$/,
+        /^\+61[2378]\d{8}$/,
+        /^\+614\d{8}$/
+      ];
+      return patterns.some(p => p.test(normalized));
+    }
+
+    function validateEmail(email) {
+      const re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+
+    function validateWorkEmail(email, payrollId) {
+      // Work email should match payroll ID as the local part
+      if (!email || !payrollId) return false;
+      if (!validateEmail(email)) return false;
+      
+      const [localPart] = email.split('@');
+      return localPart === payrollId;
+    }
+
+    function validateStep(step) {
+      switch(step) {
+        case 2:
+          return state.company_name && state.Director_name && validateACN(state.ACN);
+        case 3:
+          return state.admin_user_name;
+        case 4:
+          return state.head_office.address &&
+                 state.head_office.locality &&
+                 state.head_office.state &&
+                 state.head_office.post_code &&
+                 validateAusPhone(state.head_office.contact?.phone || "") &&
+                 validateEmail(state.head_office.contact?.email || "");
+        case 5:
+          return state.venues.length > 0;
+        case 6:
+          // The currently selected venue must have a name, manager, address, suburb, state, postcode, email, and phone.
+          const v = state.venues[state.selectedVenue] || {};
+          return v.name && v.address && v.suburb && v.state && v.postcode && v.email && v.phone && v.manager;
+        case 7:
+          return Array.from(state.workAreas.values()).every(arr => arr.length > 0);
+        default:
+          return true;
+      }
+    }
+
+    /***** UPDATE MODAL CONTENT *****/
+    function updateModalContent(step) {
+      currentStep = step;
+      const leftSection = document.getElementById('leftSection');
+      const rightSection = document.getElementById('rightSection');
+      const backBtn = document.getElementById('backBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      leftSection.innerHTML = '';
+      rightSection.innerHTML = '';
+
+      // Show/hide back button on first step and next button on final step
+      if (step === 1) {
+        hideElement('backBtn');
+      } else {
+        showElement('backBtn');
+      }
+
+      if (step === 7) {
+        hideElement('nextBtn');
+      } else {
+        showElement('nextBtn');
+      }
+
+      switch(step) {
+        case 1:
+          renderWelcome(leftSection, rightSection);
+          break;
+        case 2:
+          renderCompanyDetails(leftSection, rightSection);
+          break;
+        case 3:
+          renderAdminDetails(leftSection, rightSection);
+          break;
+        case 4:
+          renderHeadOffice(leftSection, rightSection);
+          break;
+        case 5:
+          renderVenueSelection(leftSection, rightSection);
+          break;
+        case 6:
+          renderVenueDetails(leftSection, rightSection);
+          break;
+        case 7:
+          renderWorkAreas(leftSection, rightSection);
+          break;
+        default:
+          break;
+      }
+    }
+
+    /***** RENDER FUNCTIONS *****/
+    function renderWelcome(leftSection, rightSection) {
+      leftSection.innerHTML = `
+        <div>
+          <div class="text-gray-500 flex items-center mb-4">
+            <i class="fas fa-clock mr-2"></i>
+            <span>5 mins</span>
+          </div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">
+            Business Onboarding Process
+          </h1>
+          <p class="text-gray-700 mb-6 leading-relaxed">
+            Welcome to the business onboarding process. We'll guide you through:
+            <br/><br/>
+            1. Company Details
+            <br/>
+            2. Administrator Setup
+            <br/>
+            3. Head Office Address
+            <br/>
+            4. Company Type & Venue Selection
+            <br/>
+            5. Venue Details
+            <br/>
+            6. Work Areas
+          </p>
+        </div>
+        <div>
+          <button class="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 transition-colors" onclick="updateModalContent(2)">
+            Get started
+          </button>
+        </div>
+      `;
+      rightSection.innerHTML = `
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <div class="text-center mb-6">
+            <i class="fas fa-building text-5xl text-purple-600 mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800">Company Registration</h2>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center text-gray-600">
+              <i class="fas fa-check-circle text-green-500 mr-3"></i>
+              <span>Streamlined Process</span>
+            </div>
+            <div class="flex items-center text-gray-600">
+              <i class="fas fa-check-circle text-green-500 mr-3"></i>
+              <span>Secure Information Handling</span>
+            </div>
+            <div class="flex items-center text-gray-600">
+              <i class="fas fa-check-circle text-green-500 mr-3"></i>
+              <span>Instant Setup</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCompanyDetails(leftSection, rightSection) {
+      leftSection.innerHTML = `
+        <div>
+          <h2 class="text-sm text-gray-500 uppercase mb-2">Step 2 of 7</h2>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Company Details</h1>
+          <p class="text-gray-700 mb-6">
+            Please provide your company information. Ensure your ACN is correct.
+          </p>
+        </div>
+      `;
+      rightSection.innerHTML = `
+        <form id="companyForm" class="w-full max-w-lg">
+          <div class="space-y-4">
+            <div>
+              <label for="companyName" class="block text-gray-700 mb-2">Company Name</label>
+              <input type="text" id="companyName" class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required value="${state.company_name}">
+            </div>
+            <div>
+              <label for="directorName" class="block text-gray-700 mb-2">Director's Name</label>
+              <input type="text" id="directorName" class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required value="${state.Director_name}">
+            </div>
+            <div>
+              <label for="acn" class="block text-gray-700 mb-2">ACN (e.g., 004 085 616)</label>
+              <input type="text" id="acn" class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required value="${state.ACN}">
+              <div id="acnError" class="error-message">Please enter a valid ACN number</div>
+            </div>
+            ${state.company_id ? `
+            <div>
+              <label for="companyId" class="block text-gray-700 mb-2 system-generated-label">Company ID</label>
+              <input type="text" id="companyId" class="w-full p-2 border rounded system-generated" 
+                     value="${state.company_id}" readonly>
+            </div>
+            ` : ''}
+            <button type="submit" class="hidden">Submit</button>
+          </div>
+        </form>
+      `;
+      setupCompanyFormHandlers();
+    }
+
+    function renderAdminDetails(leftSection, rightSection) {
+      leftSection.innerHTML = `
+        <div>
+          <h2 class="text-sm text-gray-500 uppercase mb-2">Step 3 of 7</h2>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Administrator Setup</h1>
+          <p class="text-gray-700 mb-6">
+            Please provide details for the system administrator account.
+          </p>
+        </div>
+      `;
+      rightSection.innerHTML = `
+        <form id="adminForm" class="w-full max-w-lg">
+          <div class="space-y-4">
+            <div>
+              <label for="adminName" class="block text-gray-700 mb-2">Administrator Name</label>
+              <input type="text" id="adminName" class="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required value="${state.admin_user_name}">
+            </div>
+            ${state.admin_user_id ? `
+            <div>
+              <label for="adminId" class="block text-gray-700 mb-2 system-generated-label">Admin User ID</label>
+              <input type="text" id="adminId" class="w-full p-2 border rounded system-generated" 
+                     value="${state.admin_user_id}" readonly>
+            </div>
+            ` : ''}
+            <button type="submit" class="hidden">Submit</button>
+          </div>
+        </form>
+      `;
+      setupAdminFormHandlers();
+    }
+
+    function renderHeadOffice(leftSection, rightSection) {
+      leftSection.innerHTML = `
+        <div>
+          <h2 class="text-sm text-gray-500 uppercase mb-2">Step 4 of 7</h2>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Head Office Address</h1>
+          <p class="text-gray-700 mb-6">
+            Please select your head office address using the address selection tool and provide contact details.
+          </p>
+        </div>
+      `;
+      rightSection.innerHTML = `
+        <div class="w-full">
+          <gmpx-split-layout row-layout-min-width="600" class="w-full h-96">
+            <div class="panel p-4" slot="fixed">
+              <div class="flex items-center mb-2">
+                <img class="w-6 h-6 mr-2" src="https://fonts.gstatic.com/s/i/googlematerialicons/location_pin/v5/24px.svg" alt="">
+                <span class="font-medium">Address Selection</span>
+              </div>
+              <input type="text" placeholder="Address" id="location-input" class="w-full p-2 border rounded mb-2"/>
+              <input type="text" placeholder="Apt, Suite, etc (optional)" id="apt-input" class="w-full p-2 border rounded mb-2"/>
+              <input type="text" placeholder="City" id="locality-input" class="w-full p-2 border rounded mb-2"/>
+              <div class="flex space-x-2 mb-2">
+                <input type="text" placeholder="State/Province" id="administrative_area_level_1-input" class="w-1/2 p-2 border rounded"/>
+                <input type="text" placeholder="Zip/Postal code" id="postal_code-input" class="w-1/2 p-2 border rounded"/>
+              </div>
+              <input type="text" placeholder="Country" id="country-input" class="w-full p-2 border rounded mb-2"/>
+              <input type="tel" placeholder="Phone" id="phone-input" class="w-full p-2 border rounded mb-2"/>
+              <input type="email" placeholder="Email" id="email-input" class="w-full p-2 border rounded mb-2"/>
+              <button id="use-address-btn" class="bg-purple-600 text-white px-4 py-2 rounded">Use Address</button>
+            </div>
+            <gmp-map slot="main" class="w-full h-96">
+              <gmp-advanced-marker></gmp-advanced-marker>
+            </gmp-map>
+          </gmpx-split-layout>
+        </div>
+      `;
+      initAddressSelection();
+    }
+
+    async function initAddressSelection() {
+      const { APILoader } = await import('https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js');
+      const { Autocomplete } = await APILoader.importLibrary('places');
+      const mapEl = document.querySelector('gmp-map');
+      const markerEl = document.querySelector('gmp-advanced-marker');
+
+      const mapOptions = {
+        center: { lat: -37.8136, lng: 144.9631 }, // Default to Melbourne, Australia
+        zoom: 11,
+        fullscreenControl: true,
+        mapTypeControl: false,
+        streetViewControl: true,
+        zoomControl: true,
+        maxZoom: 22,
+        mapId: 'DEMO_MAP_ID'
+      };
+      await customElements.whenDefined('gmp-map');
+      mapEl.innerMap.setOptions(mapOptions);
+
+      const autocomplete = new Autocomplete(document.getElementById('location-input'), {
+        fields: ['address_components', 'geometry', 'name'],
+        types: ['address'],
+        componentRestrictions: { country: 'au' } // Restrict to Australia
+      });
+
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) {
+          alert(`No details available for input: '${place.name}'`);
+          return;
+        }
+        renderAddress(place);
+        fillInAddress(place);
+      });
+
+      document.getElementById('use-address-btn').addEventListener('click', () => {
+        const addressVal = document.getElementById('location-input').value;
+        const aptVal = document.getElementById('apt-input').value;
+        const localityVal = document.getElementById('locality-input').value;
+        const stateVal = document.getElementById('administrative_area_level_1-input').value;
+        const postalVal = document.getElementById('postal_code-input').value;
+        const countryVal = document.getElementById('country-input').value;
+        const phoneVal = document.getElementById('phone-input').value;
+        const emailVal = document.getElementById('email-input').value;
+        
+        // Validate inputs
+        if (!addressVal || !localityVal || !stateVal || !postalVal) {
+          alert("Please complete all required address fields");
+          return;
+        }
+        
+        if (!validateAusPhone(phoneVal)) {
+          alert("Please enter a valid Australian phone number");
+          return;
+        }
+        
+        if (!validateEmail(emailVal)) {
+          alert("Please enter a valid email address");
+          return;
+        }
+        
+        state.head_office = {
+          address: addressVal,
+          apt: aptVal,
+          locality: localityVal,
+          state: stateVal,
+          post_code: postalVal,
+          country: countryVal,
+          contact: { phone: phoneVal, email: emailVal }
+        };
+        updateModalContent(5);
+      });
+    }
+
+    function getFormInputElement(componentType) {
+      return document.getElementById(`${componentType}-input`);
+    }
+
+    function fillInAddress(place) {
+      function getComponentName(componentType) {
+        for (const component of place.address_components || []) {
+          if (component.types.includes(componentType)) {
+            return (componentType === 'administrative_area_level_1' || componentType === 'postal_code')
+              ? component.short_name
+              : component.long_name;
+          }
+        }
+        return '';
+      }
+      const components = {
+        location: `${getComponentName('street_number')} ${getComponentName('route')}`.trim(),
+        locality: getComponentName('locality'),
+        administrative_area_level_1: getComponentName('administrative_area_level_1'),
+        postal_code: getComponentName('postal_code'),
+        country: getComponentName('country')
+      };
+      for (const key in components) {
+        const input = getFormInputElement(key);
+        if (input) {
+          input.value = components[key];
+        }
+      }
+    }
+
+    function renderAddress(place) {
+      const mapEl = document.querySelector('gmp-map');
+      const markerEl = document.querySelector('gmp-advanced-marker');
+      if (place.geometry && place.geometry.location) {
+        mapEl.center = place.geometry.location;
+        markerEl.position = place.geometry.location;
+      } else {
+        markerEl.position = null;
+      }
+    }
+
+    function renderVenueSelection(leftSection, rightSection) {
+      leftSection.innerHTML = `
+        <h2 class="text-sm text-gray-500 uppercase mb-2">Step 5 of 7</h2>
+        <h1 class="text-4xl font-bold text-gray-900 mb-6">Select Company Type</h1>
+        <p class="text-gray-700 mb-6">
+          Please select your company type:
+          <br>
+          1. Single Venue - One venue at one location
+          <br>
+          2. Multi Venue - Multiple venues at different locations
+          <br>
+          3. Multi Outlet - Multiple venues at one location
+        </p>
+        <div class="flex items-center space-x-6 justify-center">
+          <button id="singleVenueBtn" class="bg-gray-100 text-gray-700 py-4 px-6 rounded border hover:border-green-600 hover:text-green-600 transition-colors" onclick="handleLocationSelection('single-venue')">
+            Single Venue
+          </button>
+          <button id="multiVenueBtn" class="bg-gray-100 text-gray-700 py-4 px-6 rounded border hover:border-green-600 hover:text-green-600 transition-colors" onclick="handleLocationSelection('multi-venue')">
+            Multi Venue
+          </button>
+          <button id="multiOutletBtn" class="bg-gray-100 text-gray-700 py-4 px-6 rounded border hover:border-green-600 hover:text-green-600 transition-colors" onclick="handleLocationSelection('multi-outlet')">
+            Multi Outlet
+          </button>
+        </div>
+      `;
+      rightSection.innerHTML = `
+        <div id="rightSectionContent" class="w-full flex flex-col items-center justify-center space-y-4"></div>
+      `;
+    }
+
+    function handleLocationSelection(type) {
+      const contentDiv = document.getElementById('rightSectionContent');
+      contentDiv.innerHTML = '';
+      
+      state.entity_type = type;
+      
+      if (type === 'single-venue') {
+        // Create a single venue with auto-generated IDs
+        if (!state.company_id) {
+          state.company_id = generateCompanyId();
+        }
+        
+        const venue = {
+          venue_id: generateVenueId(state.company_id),
+          name: state.company_name || '',
+          address: '',
+          suburb: '',
+          state: '',
+          postcode: '',
+          email: '',
+          phone: '',
+          website: '',
+          manager: '',
+          venue_manager_id: ''
+        };
+        
+        state.venues = [venue];
+        state.venue_count = 1;
+        state.location_count = 1;
+        
+        addVenueInput(contentDiv, 0);
+      } else if (type === 'multi-venue' || type === 'multi-outlet') {
+        let promptText = (type === 'multi-venue')
+          ? "How many venues does the company have?"
+          : "How many outlets does the company have at this location?";
+        let countStr = prompt(promptText);
+        let count = parseInt(countStr);
+        if (isNaN(count) || count <= 0) {
+          alert("Invalid number. Please try again.");
+          return;
+        }
+        
+        if (!state.company_id) {
+          state.company_id = generateCompanyId();
+        }
+        
+        state.venues = [];
+        state.venue_count = count;
+        state.location_count = type === 'multi-venue' ? count : 1;
+        
+        for (let i = 0; i < count; i++) {
+          const venue = {
+            venue_id: generateVenueId(state.company_id),
+            name: '',
+            address: '',
+            suburb: '',
+            state: '',
+            postcode: '',
+            email: '',
+            phone: '',
+            website: '',
+            manager: '',
+            venue_manager_id: ''
+          };
+          state.venues.push(venue);
+        }
+        
+        const container = document.createElement('div');
+        container.className = 'w-full space-y-4';
+        state.venues.forEach((_, index) => {
+          addVenueInput(container, index);
+        });
+        
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.className = 'w-full mt-4 py-2 text-blue-600 hover:text-blue-800 flex items-center justify-center';
+        addButton.innerHTML = '<i class="fas fa-plus mr-2"></i>Add Another Venue/Outlet';
+        addButton.onclick = () => {
+          const newVenue = {
+            venue_id: generateVenueId(state.company_id),
+            name: '',
+            address: '',
+            suburb: '',
+            state: '',
+            postcode: '',
+            email: '',
+            phone: '',
+            website: '',
+            manager: '',
+            venue_manager_id: ''
+          };
+          state.venues.push(newVenue);
+          state.venue_count++;
+          if (type === 'multi-venue') {
+            state.location_count++;
+          }
+          addVenueInput(container, state.venues.length - 1);
+        };
+        container.appendChild(addButton);
+        contentDiv.appendChild(container);
+      }
+      const proceedButton = document.createElement('button');
+      proceedButton.type = 'button';
+      proceedButton.className = 'bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 transition-colors';
+      proceedButton.textContent = 'Next';
+      proceedButton.onclick = () => updateModalContent(6);
+      contentDiv.appendChild(proceedButton);
+    }
+
+    function addVenueInput(container, index) {
+      const inputContainer = document.createElement('div');
+      inputContainer.className = 'relative w-full';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = state.venues[index].name;
+      input.className = 'w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+      input.placeholder = 'Enter venue name';
+      input.oninput = (e) => {
+        state.venues[index].name = e.target.value;
+      };
+      if(index > 0) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-700';
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.onclick = () => {
+          state.venues.splice(index, 1);
+          state.venue_count--;
+          if (state.entity_type === 'multi-venue') {
+            state.location_count--;
+          }
+          
+          // Remove from workAreas Map and reindex
+          const newWorkAreas = new Map();
+          state.workAreas.forEach((areas, idx) => {
+            if (idx < index) {
+              newWorkAreas.set(idx, areas);
+            } else if (idx > index) {
+              newWorkAreas.set(idx - 1, areas);
+            }
+          });
+          state.workAreas = newWorkAreas;
+          
+          inputContainer.remove();
+        };
+        inputContainer.appendChild(deleteBtn);
+      }
+      inputContainer.appendChild(input);
+      container.appendChild(inputContainer);
+    }
+
+    /**
+     * STEP 6 (UPDATED LAYOUT)
+     */
+    function renderVenueDetails(leftSection, rightSection) {
+      // LEFT SECTION
+      const venue = state.venues[state.selectedVenue] || {};
+      leftSection.innerHTML = `
+        <div class="flex flex-col h-full">
+          <div class="flex items-center text-orange-500 mb-4">
+            <i class="fas fa-chevron-left"></i>
+            <span class="ml-2">Back</span>
+          </div>
+          <div class="text-orange-500 mb-4">STEP 6 OF 7</div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Confirm Venue Details</h1>
+          <p class="text-gray-600 mb-8">Select a venue to edit its details.</p>
+          <div class="space-y-4" id="venueButtons">
+            ${
+              state.venues.map((v, index) => `
+                <button
+                  class="w-full py-3 rounded ${
+                    index === state.selectedVenue
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-700'
+                  }"
+                  onclick="selectVenue(${index})"
+                >
+                  ${v.name || `Venue ${index + 1}`}
+                </button>
+              `).join('')
+            }
+          </div>
+        </div>
+      `;
+
+      // RIGHT SECTION
+      rightSection.innerHTML = `
+        <div class="bg-white w-full">
+          <form id="venueForm" class="space-y-4">
+            <!-- Row 1: Venue ID & Venue Name -->
+            <div class="flex space-x-4">
+              <div class="w-1/2">
+                <label for="venueId" class="block text-gray-700 system-generated-label">Venue ID</label>
+                <input
+                  type="text"
+                  id="venueId"
+                  class="w-full p-2 border border-gray-300 rounded system-generated"
+                  value="${venue.venue_id || ''}"
+                  readonly
+                >
+              </div>
+              <div class="w-1/2">
+                <label for="venueName" class="block text-gray-700">Venue Name</label>
+                <input
+                  required
+                  type="text"
+                  id="venueName"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.name || ''}"
+                >
+              </div>
+            </div>
+            <!-- Row 2: Venue Manager ID & Manager Name -->
+            <div class="flex space-x-4">
+              <div class="w-1/2">
+                <label for="venueManagerId" class="block text-gray-700 system-generated-label">Venue Manager ID</label>
+                <input
+                  type="text"
+                  id="venueManagerId"
+                  class="w-full p-2 border border-gray-300 rounded system-generated"
+                  value="${venue.venue_manager_id || generateLinkingId(state.company_id, venue.venue_id)}"
+                  readonly
+                >
+              </div>
+              <div class="w-1/2">
+                <label for="venueManagerName" class="block text-gray-700">Venue Manager's Name</label>
+                <input
+                  required
+                  type="text"
+                  id="venueManagerName"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.manager || ''}"
+                >
+              </div>
+            </div>
+            <!-- Row 3: Address -->
+            <div>
+              <label for="address" class="block text-gray-700">Address</label>
+              <div class="flex">
+                <input
+                  required
+                  type="text"
+                  id="address"
+                  readonly
+                  class="w-full p-2 border border-gray-300 rounded-l"
+                  value="${venue.address || ''}"
+                >
+                <button
+                  type="button"
+                  id="venueSelectAddressBtn"
+                  class="bg-purple-600 text-white px-4 rounded-r"
+                >
+                  Select Address
+                </button>
+              </div>
+            </div>
+            <!-- Row 4: Suburb, Postcode, State -->
+            <div class="flex space-x-4">
+              <div class="w-1/3">
+                <label for="suburb" class="block text-gray-700">Suburb</label>
+                <input
+                  required
+                  type="text"
+                  id="suburb"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.suburb || ''}"
+                >
+              </div>
+              <div class="w-1/3">
+                <label for="postcode" class="block text-gray-700">Postcode</label>
+                <input
+                  required
+                  type="text"
+                  id="postcode"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.postcode || ''}"
+                >
+              </div>
+              <div class="w-1/3 relative">
+                <label for="state" class="block text-gray-700">State</label>
+                <input
+                  required
+                  type="text"
+                  id="state"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.state || ''}"
+                >
+                <div id="stateList" class="autocomplete-items"></div>
+              </div>
+            </div>
+            <!-- Row 5: Venue Email & Phone -->
+            <div class="flex space-x-4">
+              <div class="w-1/2">
+                <label for="venueEmail" class="block text-gray-700">Venue Email</label>
+                <input
+                  required
+                  type="email"
+                  id="venueEmail"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.email || ''}"
+                >
+              </div>
+              <div class="w-1/2">
+                <label for="venuePhone" class="block text-gray-700">Venue Phone</label>
+                <input
+                  required
+                  type="tel"
+                  id="venuePhone"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  value="${venue.phone || ''}"
+                >
+              </div>
+            </div>
+            <!-- Row 6: Website -->
+            <div>
+              <label for="venueWebsite" class="block text-gray-700">Venue Website</label>
+              <input
+                type="url"
+                id="venueWebsite"
+                class="w-full p-2 border border-gray-300 rounded"
+                value="${venue.website || ''}"
+              >
+            </div>
+            <!-- Save Button -->
+            <button
+              type="submit"
+              class="w-full py-3 bg-purple-600 text-white rounded"
+            >
+              Save Venue Details
+            </button>
+          </form>
+        </div>
+      `;
+
+      // Link up the form submission logic
+      const form = document.getElementById('venueForm');
+      form.addEventListener('submit', handleVenueSubmit);
+
+      // "Select Address" button
+      const venueSelectAddressBtn = document.getElementById('venueSelectAddressBtn');
+      if (venueSelectAddressBtn) {
+        venueSelectAddressBtn.onclick = openVenueAddressModal;
+      }
+      // Initialize state auto-complete for the "state" field
+      setTimeout(() => {
+        autocompleteState(document.getElementById('state'));
+      }, 50);
+    }
+
+    function selectVenue(index) {
+      state.selectedVenue = index;
+      updateModalContent(6);
+    }
+
+    function handleVenueSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const venue = state.venues[state.selectedVenue];
+
+      // Update from form fields but preserve system-generated IDs
+      venue.name = form.venueName.value;
+      venue.manager = form.venueManagerName.value;
+      
+      // Generate manager ID if not already present
+      if (!venue.venue_manager_id) {
+        venue.venue_manager_id = generateLinkingId(state.company_id, venue.venue_id);
+      }
+      
+      venue.address = form.address.value;
+      venue.suburb = form.suburb.value;
+      venue.postcode = form.postcode.value;
+      venue.state = form.state.value;
+      venue.email = form.venueEmail.value;
+      venue.phone = form.venuePhone.value;
+      venue.website = form.venueWebsite.value;
+
+      // Validate required fields
+      if (!venue.name || !venue.manager || !venue.address || 
+          !venue.suburb || !venue.postcode || !venue.state || 
+          !venue.email || !venue.phone) {
+        alert("Please fill in all required fields");
+        return;
+      }
+      
+      // Validate email and phone formats
+      if (!validateEmail(venue.email)) {
+        alert("Please enter a valid email address");
+        return;
+      }
+      
+      if (!validateAusPhone(venue.phone)) {
+        alert("Please enter a valid Australian phone number");
+        return;
+      }
+
+      // Move to next venue or next step
+      if (state.selectedVenue < state.venues.length - 1) {
+        state.selectedVenue++;
+        updateModalContent(6);
+      } else {
+        updateModalContent(7);
+      }
+    }
+
+    const statesArray = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'];
+    function autocompleteState(input) {
+      let currentFocus;
+      input.addEventListener('input', function() {
+        let list, item, val = this.value;
+        closeAllLists();
+        if (!val) return false;
+        currentFocus = -1;
+        list = document.createElement('div');
+        list.setAttribute('id', this.id + 'autocomplete-list');
+        list.setAttribute('class', 'autocomplete-items');
+        this.parentNode.appendChild(list);
+        statesArray.forEach(state => {
+          if (state.substr(0, val.length).toUpperCase() === val.toUpperCase()) {
+            item = document.createElement('div');
+            item.innerHTML = `<strong>${state.substr(0, val.length)}</strong>${state.substr(val.length)}`;
+            item.innerHTML += `<input type='hidden' value='${state}'>`;
+            item.addEventListener('click', function() {
+              input.value = this.getElementsByTagName('input')[0].value;
+              closeAllLists();
+            });
+            list.appendChild(item);
+          }
+        });
+      });
+
+      input.addEventListener('keydown', function(e) {
+        let x = document.getElementById(this.id + 'autocomplete-list');
+        if (x) x = x.getElementsByTagName('div');
+        if (e.keyCode === 40) {
+          currentFocus++;
+          addActive(x);
+        } else if (e.keyCode === 38) {
+          currentFocus--;
+          addActive(x);
+        } else if (e.keyCode === 13) {
+          e.preventDefault();
+          if (currentFocus > -1 && x) x[currentFocus].click();
+        }
+      });
+
+      function addActive(x) {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = x.length - 1;
+        x[currentFocus].classList.add('autocomplete-active');
+      }
+
+      function removeActive(x) {
+        for (let i = 0; i < x.length; i++) {
+          x[i].classList.remove('autocomplete-active');
+        }
+      }
+
+      function closeAllLists(elmnt) {
+        const items = document.getElementsByClassName('autocomplete-items');
+        for (let i = 0; i < items.length; i++) {
+          if (elmnt !== items[i] && elmnt !== input) {
+            items[i].parentNode.removeChild(items[i]);
+          }
+        }
+      }
+
+      document.addEventListener('click', function(e) {
+        closeAllLists(e.target);
+      });
+    }
+
+    function renderWorkAreas(leftSection, rightSection) {
+      // LEFT SECTION - Now contains venue selection and available work areas
+      leftSection.innerHTML = `
+        <div class="flex flex-col h-full">
+          <h2 class="text-sm text-gray-500 uppercase mb-2">Step 7 of 7</h2>
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Work Areas</h1>
+          <p class="text-gray-600 mb-4">Select work areas for each venue.</p>
+          
+          <!-- Venue Selection -->
+          <div class="mb-6">
+            <label for="venue-selector" class="block text-sm font-medium text-gray-700 mb-2">Select Venue:</label>
+            <select id="venue-selector" class="w-full p-2 border border-gray-300 rounded">
+              ${state.venues.map((venue, idx) => 
+                `<option value="${idx}" ${state.selectedVenue === idx ? 'selected' : ''}>${venue.name || `Venue ${idx + 1}`}</option>`
+              ).join('')}
+            </select>
+          </div>
+          
+          <!-- Available Work Areas -->
+          <h3 class="text-lg font-semibold mb-3">Available Work Areas:</h3>
+          <div id="available-work-areas" class="grid grid-cols-2 gap-2 mb-4">
+            <!-- Work area buttons will be inserted here -->
+          </div>
+          
+          <button id="add-custom-work-area" class="flex items-center justify-center text-blue-600 bg-blue-50 hover:bg-blue-100 py-2 px-4 rounded mb-4">
+            <i class="fas fa-plus mr-2"></i> Add Custom Work Area
+          </button>
+          
+          <div class="mt-auto">
+            <button id="work-areas-submit" class="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 transition-colors w-full">
+              Submit
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // RIGHT SECTION - Shows selected work areas in a table
+      rightSection.innerHTML = `
+        <div class="bg-white p-6 rounded-lg shadow-md w-full">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">
+            Selected Work Areas: <span class="venue-name text-purple-600"></span>
+          </h2>
+          
+          <div class="overflow-hidden border border-gray-200 rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Area</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Area ID</th>
+                  <th scope="col" class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Remove</th>
+                </tr>
+              </thead>
+              <tbody id="selected-work-areas" class="bg-white divide-y divide-gray-200">
+                <!-- Selected work areas will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      
+      // Update the venue name in the right section title
+      const selectedVenue = state.venues[state.selectedVenue];
+      const venueNameElements = rightSection.querySelectorAll('.venue-name');
+      venueNameElements.forEach(el => {
+        el.textContent = selectedVenue.name || `Venue ${state.selectedVenue + 1}`;
+      });
+      
+      // Populate available work areas
+      populateAvailableWorkAreas();
+      
+      // Populate selected work areas
+      updateSelectedWorkAreas();
+      
+      // Set up event handlers
+      document.getElementById('venue-selector').addEventListener('change', function() {
+        state.selectedVenue = parseInt(this.value);
+        
+        // Update venue name in right section
+        const selectedVenue = state.venues[state.selectedVenue];
+        const venueNameElements = rightSection.querySelectorAll('.venue-name');
+        venueNameElements.forEach(el => {
+          el.textContent = selectedVenue.name || `Venue ${state.selectedVenue + 1}`;
+        });
+        
+        // Re-populate work areas for the newly selected venue
+        populateAvailableWorkAreas();
+        updateSelectedWorkAreas();
+      });
+      
+      document.getElementById('add-custom-work-area').addEventListener('click', function() {
+        addCustomWorkArea();
+      });
+      
+      document.getElementById('work-areas-submit').addEventListener('click', function() {
+        if (validateStep(7)) {
+          const data = saveCompanyData();
+          submitCompanyData(data);
+        } else {
+          alert('Please select at least one work area for each venue.');
+        }
+      });
+    }
+
+    function populateAvailableWorkAreas() {
+      const container = document.getElementById('available-work-areas');
+      if (!container) return;
+      
+      // Clear existing buttons
+      container.innerHTML = '';
+      
+      // Convert area names to match backend codes
+      const standardWorkAreas = Object.keys(AREA_CODES).map(area => 
+        area.replace(/\b\w/g, c => c.toUpperCase())
+      );
+      
+      // Get selected work areas for current venue
+      const selectedAreas = (state.workAreas.get(state.selectedVenue) || [])
+        .map(area => area.work_area_name);
+      
+      // Create a button for each available work area
+      standardWorkAreas.forEach(area => {
+        // Skip if already selected
+        if (selectedAreas.includes(area)) return;
+        
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'work-area-button py-2 px-4 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm';
+        button.textContent = area;
+        button.dataset.area = area;
+        
+        button.addEventListener('click', function() {
+          addWorkArea(area);
+        });
+        
+        container.appendChild(button);
+      });
+    }
+
+    function updateSelectedWorkAreas() {
+      const tableBody = document.getElementById('selected-work-areas');
+      if (!tableBody) return;
+      
+      // Clear existing rows
+      tableBody.innerHTML = '';
+      
+      // Get selected work areas for current venue
+      const workAreas = state.workAreas.get(state.selectedVenue) || [];
+      
+      // Create a row for each selected work area
+      if (workAreas.length > 0) {
+        workAreas.forEach(area => {
+          const row = document.createElement('tr');
+          
+          // Work Area Name Column
+          const nameCell = document.createElement('td');
+          nameCell.className = 'px-6 py-4 whitespace-nowrap';
+          const nameButton = document.createElement('button');
+          nameButton.className = 'py-1 px-3 bg-purple-100 text-purple-800 rounded-full text-sm font-medium';
+          nameButton.textContent = area.work_area_name;
+          nameCell.appendChild(nameButton);
+          
+          // Work Area ID Column
+          const idCell = document.createElement('td');
+          idCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+          idCell.textContent = area.work_area_id;
+          
+          // Remove Button Column
+          const removeCell = document.createElement('td');
+          removeCell.className = 'px-6 py-4 whitespace-nowrap text-center';
+          const removeButton = document.createElement('button');
+          removeButton.className = 'text-red-500 hover:text-red-700';
+          removeButton.innerHTML = '<i class="fas fa-times"></i>';
+          removeButton.addEventListener('click', function() {
+            removeWorkArea(area.work_area_name);
+          });
+          removeCell.appendChild(removeButton);
+          
+          // Add cells to row
+          row.appendChild(nameCell);
+          row.appendChild(idCell);
+          row.appendChild(removeCell);
+          
+          // Add row to table
+          tableBody.appendChild(row);
+        });
+      } else {
+        // Show empty state
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.className = 'px-6 py-4 text-center text-gray-500';
+        emptyCell.colSpan = 3;
+        emptyCell.textContent = 'No work areas selected';
+        emptyRow.appendChild(emptyCell);
+        tableBody.appendChild(emptyRow);
+      }
+    }
+
+    function addWorkArea(areaName) {
+      // Get the current venue
+      const venueIndex = state.selectedVenue;
+      const venue = state.venues[venueIndex];
+      
+      // Generate a work area ID
+      const workAreaId = generateWorkAreaId(state.company_id, venue.venue_id);
+      
+      // Add to selected work areas
+      let selected = state.workAreas.get(venueIndex) || [];
+      selected.push({
+        work_area_name: areaName,
+        work_area_id: workAreaId
+      });
+      
+      // Sort the work areas alphabetically by name
+      selected.sort((a, b) => a.work_area_name.localeCompare(b.work_area_name));
+      
+      // Update state
+      state.workAreas.set(venueIndex, selected);
+      
+      // Update UI
+      populateAvailableWorkAreas();
+      updateSelectedWorkAreas();
+    }
+
+    function removeWorkArea(areaName) {
+      // Get the current venue
+      const venueIndex = state.selectedVenue;
+      
+      // Remove from selected work areas
+      let selected = state.workAreas.get(venueIndex) || [];
+      selected = selected.filter(area => area.work_area_name !== areaName);
+      
+      // Update state
+      state.workAreas.set(venueIndex, selected);
+      
+      // Update UI
+      populateAvailableWorkAreas();
+      updateSelectedWorkAreas();
+    }
+
+    function addCustomWorkArea() {
+      let customArea = prompt("Enter custom work area name:");
+      if (customArea) {
+        // Make sure it's properly formatted
+        customArea = customArea.trim();
+        customArea = customArea.replace(/\b\w/g, c => c.toUpperCase());
+        
+        if (customArea.length === 0) {
+          alert("Please enter a valid work area name");
+          return;
+        }
+        
+        // Check if it's already selected
+        const selected = state.workAreas.get(state.selectedVenue) || [];
+        if (selected.some(area => area.work_area_name === customArea)) {
+          alert("This work area is already selected");
+          return;
+        }
+        
+        // Add the custom work area
+        addWorkArea(customArea);
+      }
+    }
+
+    function saveCompanyData() {
+      // Entity type data
+      const entityType = {
+        entity_type: state.entity_type,
+        venue_count: state.venue_count,
+        location_count: state.location_count
+      };
+      
+      // Format venues with correct work areas
+      const venuesWithWorkAreas = state.venues.map((venue, index) => {
+        const workAreas = state.workAreas.get(index) || [];
+        return {
+          ...venue,
+          work_areas: workAreas
+        };
+      });
+      
+      // Build final data structure
+      const companyData = {
+        company_id: state.company_id,
+        company_name: state.company_name,
+        Director_name: state.Director_name,
+        ACN: state.ACN,
+        admin_user_name: state.admin_user_name,
+        admin_user_id: state.admin_user_id,
+        entity_type: entityType,
+        head_office: {
+          address: state.head_office.address,
+          suburb: state.head_office.locality,
+          state: state.head_office.state,
+          post_code: state.head_office.post_code,
+          contact: state.head_office.contact
+        },
+        venues: venuesWithWorkAreas
+      };
+      
+      console.log('Saving company data:', companyData);
+      return companyData;
+    }
+
+    async function submitCompanyData(data) {
+      try {
+        const response = await fetch('/onboarding/api/onboard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert(`Company onboarded successfully! Company ID: ${result.company_id}`);
+          // Reset state or redirect
+          window.location.href = '/dashboard';
+        } else {
+          alert(`Error: ${result.error || 'Unknown error occurred'}`);
+        }
+      } catch (error) {
+        console.error('Submission error:', error);
+        alert('Failed to submit company data. Please try again.');
+      }
+    }
+
+    /***** FORM HANDLER SETUP FUNCTIONS *****/
+    function setupCompanyFormHandlers() {
+      const form = document.getElementById('companyForm');
+      const acnInput = document.getElementById('acn');
+      const acnError = document.getElementById('acnError');
+      
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!validateACN(acnInput.value)) {
+          acnError.style.display = 'block';
+          acnInput.classList.add('input-error');
+          return;
+        } else {
+          acnError.style.display = 'none';
+          acnInput.classList.remove('input-error');
+        }
+        
+        state.company_name = document.getElementById('companyName').value;
+        state.Director_name = document.getElementById('directorName').value;
+        state.ACN = acnInput.value;
+        
+        // Generate company ID if not already present
+        if (!state.company_id) {
+          state.company_id = generateCompanyId();
+        }
+        
+        updateModalContent(3);
+      });
+      
+      acnInput.addEventListener('input', (e) => {
+        if(e.target.value.length >= 9) {
+          if(!validateACN(e.target.value)) {
+            acnError.style.display = 'block';
+            e.target.classList.add('input-error');
+          } else {
+            acnError.style.display = 'none';
+            e.target.classList.remove('input-error');
+          }
+        }
+      });
+    }
+
+    function setupAdminFormHandlers() {
+      const form = document.getElementById('adminForm');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.admin_user_name = document.getElementById('adminName').value;
+        
+        // Generate admin ID using the company ID prefix
+        if (!state.admin_user_id) {
+          state.admin_user_id = generateAdminUserId(state.company_id);
+        }
+        
+        updateModalContent(4);
+      });
+    }
+
+    /***** VENUE ADDRESS MODAL FUNCTIONS *****/
+    let venueAddressInitialized = false;
+    async function initVenueAddressSelection() {
+      const { APILoader } = await import('https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js');
+      const { Autocomplete } = await APILoader.importLibrary('places');
+      const mapEl = document.querySelector('#venueAddressModal gmp-map');
+      const markerEl = document.querySelector('#venueAddressModal gmp-advanced-marker');
+
+      const mapOptions = {
+        center: { lat: -37.8136, lng: 144.9631 }, // Default to Melbourne, Australia
+        zoom: 11,
+        fullscreenControl: true,
+        mapTypeControl: false,
+        streetViewControl: true,
+        zoomControl: true,
+        maxZoom: 22,
+        mapId: 'DEMO_MAP_ID'
+      };
+      await customElements.whenDefined('gmp-map');
+      mapEl.innerMap.setOptions(mapOptions);
+
+      const autocomplete = new Autocomplete(document.getElementById('venue-location-input'), {
+        fields: ['address_components', 'geometry', 'name'],
+        types: ['address'],
+        componentRestrictions: { country: 'au' } // Restrict to Australia
+      });
+
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) {
+          alert(`No details available for input: '${place.name}'`);
+          return;
+        }
+        renderVenueAddress(place);
+        fillInVenueAddress(place);
+      });
+
+      document.getElementById('venue-use-address-btn').addEventListener('click', () => {
+        const venue = state.venues[state.selectedVenue];
+        venue.address = document.getElementById('venue-location-input').value;
+        venue.apt = document.getElementById('venue-apt-input').value;
+        venue.suburb = document.getElementById('venue-locality-input').value;
+        venue.state = document.getElementById('venue-administrative_area_level_1-input').value;
+        venue.postcode = document.getElementById('venue-postal_code-input').value;
+        venue.country = document.getElementById('venue-country-input').value;
+        document.getElementById('address').value = venue.address;
+        document.getElementById('suburb').value = venue.suburb;
+        document.getElementById('state').value = venue.state;
+        document.getElementById('postcode').value = venue.postcode;
+        closeVenueAddressModal();
+      });
+      venueAddressInitialized = true;
+    }
+
+    function fillInVenueAddress(place) {
+      function getComponentName(componentType) {
+        for (const component of place.address_components || []) {
+          if (component.types.includes(componentType)) {
+            return (componentType === 'administrative_area_level_1' || componentType === 'postal_code')
+              ? component.short_name
+              : component.long_name;
+          }
+        }
+        return '';
+      }
+      const components = {
+        location: `${getComponentName('street_number')} ${getComponentName('route')}`.trim(),
+        locality: getComponentName('locality'),
+        administrative_area_level_1: getComponentName('administrative_area_level_1'),
+        postal_code: getComponentName('postal_code'),
+        country: getComponentName('country')
+      };
+      document.getElementById('venue-location-input').value = components.location;
+      document.getElementById('venue-locality-input').value = components.locality;
+      document.getElementById('venue-administrative_area_level_1-input').value = components.administrative_area_level_1;
+      document.getElementById('venue-postal_code-input').value = components.postal_code;
+      document.getElementById('venue-country-input').value = components.country;
+    }
+
+    function renderVenueAddress(place) {
+      const mapEl = document.querySelector('#venueAddressModal gmp-map');
+      const markerEl = document.querySelector('#venueAddressModal gmp-advanced-marker');
+      if (place.geometry && place.geometry.location) {
+        mapEl.center = place.geometry.location;
+        markerEl.position = place.geometry.location;
+      } else {
+        markerEl.position = null;
+      }
+    }
+
+    function openVenueAddressModal() {
+      showElement('venueAddressModal');
+      if (!venueAddressInitialized) {
+        initVenueAddressSelection();
+      }
+    }
+
+    function closeVenueAddressModal() {
+      hideElement('venueAddressModal');
+    }
+
+    document.getElementById('closeVenueAddressModal').addEventListener('click', (e) => {
+      e.preventDefault();
+      closeVenueAddressModal();
+    });
+
+    /***** NAVIGATION EVENT LISTENERS *****/
+    document.getElementById('backBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentStep > 1) updateModalContent(currentStep - 1);
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      const currentForm = document.querySelector('form');
+      if (currentForm) {
+        currentForm.dispatchEvent(new Event('submit'));
+      } else if (validateStep(currentStep)) {
+        if (currentStep < 7) updateModalContent(currentStep + 1);
+      }
+    });
+
+    /***** INITIALIZATION *****/
+    document.addEventListener('DOMContentLoaded', () => {
+      updateModalContent(1);
+    });
+  </script>
+</body>
+</html>

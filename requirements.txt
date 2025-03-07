@@ -16,11 +16,11 @@ charset-normalizer
 click
 colorama
 cryptography
-python-dateutil
 distro
 dnspython
 exceptiongroup
 Flask
+flask_bcrypt
 flask-cors
 Flask-PyMongo
 Flask-WTF
@@ -60,10 +60,12 @@ pycparser
 pydantic
 pydantic-settings
 pydantic_core
+pydantic[email]
 pymongo
 pyparsing
 PySocks
 pytest
+python-dateutil
 python-dotenv
 PyYAML
 requests

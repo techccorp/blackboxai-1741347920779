@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 px-6">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center space-y-8 md:space-y-0 md:space-x-12">
+        <!-- Left Section -->
+        <div class="text-left">
+            <h1 class="text-8xl font-extrabold text-orange-4004>500</h1>
+            <p class="text-2xl text-gray-700 mt-4">Oops! The page you're looking for doesn't exist.</p>
+            <p class="text-md text-gray-500 mt-2">It may have been moved or deleted.</p>
+            <a href="/" class="mt-6 inline-block px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">
+                Go to Homepage
+            </a>
+        </div>
+
+        <!-- Right Section (Image) -->
+        <div class="w-80 md:w-96">
+            <img src="{{ url_for('static', filename='img/404.png') }}" alt="404 Not Found Image" class="w-full">
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags and title -->
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}Home - Le Repertoire Dashboard{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Platform Library -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+    <!-- Font Awesome CDN for icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;family=Playfair+Display:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Custom Styles -->
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+        }
+        table th, table td {
+            font-size: 14px;
+        }
+        table th {
+            text-transform: uppercase;
+        }
+        .hidden {
+            display: none;
+        }
+
+        /* Recipe Preview Styles */
+        .recipe-preview {
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .recipe-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .recipe-table th, .recipe-table td {
+            padding: 8px;
+        }
+        .recipe-title {
+            font-size: 2.25rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            color: #1E3A8A;
+        }
+        .recipe-description {
+            font-style: italic;
+            color: #4B5563;
+            margin-top: 0.5rem;
+        }
+        .content-tags {
+            margin-top: 16px;
+            padding-top: 16px;
+            text-align: center;
+        }
+        .content-tags span {
+            color: #6B7280;
+            margin-right: 0.5rem;
+        }
+
+        /* Modal Adjustments */
+        .modal-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Main Content Adjustments */
+        .main-content {
+            margin-left: 4rem; /* 64px sidebar width */
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        /* Sidebar hover state adjustment */
+        #sidebar:hover + .main-content {
+            margin-left: 16rem; /* 256px expanded sidebar width */
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 640px) {
+            .main-content {
+                margin-left: 3rem; /* 48px sidebar width on mobile */
+            }
+            #sidebar:hover + .main-content {
+                margin-left: 16rem;
+            }
+        }
+    </style>
+
+    <!-- Additional head content -->
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Include Sidebar -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- Main Content Wrapper (Full-Width) -->
+    <div class="main-content flex-1">
+        <div class="p-6">
+            <!-- New Welcome Section -->
+            <div class="welcome-container bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg p-6 mb-8">
+                <div class="text-center space-y-3">
+                    <h1 id="welcome-message" class="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
+                        <!-- Dynamic greeting inserted here -->
+                    </h1>
+                    <p class="text-lg text-gray-600">
+                        Welcome to {'employee_venue_id'}
+                    </p>
+                    <div class="text-sm text-gray-500">
+                        Local time: <span id="current-time" class="font-medium">{{ current_time }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Section -->
+            {% block header %}
+            {% endblock %}
+
+            <!-- Main Content Section -->
+            {% block content %}
+            <!-- Cards Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-blue-500 p-3 rounded-full text-white">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-600 text-sm">Daily Wage Cost Expenditure</p>
+                            <p class="text-2xl font-bold">$53k</p>
+                            <p class="text-green-500 text-sm">+55% than last week</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-pink-500 p-3 rounded-full text-white">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-600 text-sm">Daily Purchase Expenditure</p>
+                            <p class="text-2xl font-bold">$2,300</p>
+                            <p class="text-green-500 text-sm">+3% than last month</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-green-500 p-3 rounded-full text-white">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-600 text-sm">Daily Revenue</p>
+                            <p class="text-2xl font-bold">$3,462</p>
+                            <p class="text-red-500 text-sm">-2% than yesterday</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-orange-500 p-3 rounded-full text-white">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-600 text-sm">Sales</p>
+                            <p class="text-2xl font-bold">$103,430</p>
+                            <p class="text-green-500 text-sm">+5% than yesterday</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Tiles Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                <!-- Chart 1: Daily Calendar -->
+                <div
+                  class="bg-white p-6 rounded-lg shadow-md cursor-pointer"
+                  onclick="openDailyCalModal()"
+                >
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Daily Calendar</h2>
+                    <div id="calendar-events" class="space-y-2">
+                        <div class="text-center py-4">
+                            <i class="fas fa-spinner fa-spin"></i> Loading calendar events...
+                        </div>
+                    </div>
+                    <p class="text-center text-gray-500 text-sm mt-4">
+                        Click to view the full daily calendar
+                    </p>
+                </div>
+
+                <!-- Updated Notes Component -->
+                {% include 'google_feature/components/_mailG.html' %}
+
+                <!-- Chart 3: Recipe Preview -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Featured Recipe</h2>
+                    <div class="recipe-preview">
+                        <h2 class="recipe-title">Delicious Pasta</h2>
+                        <p class="recipe-description">A classic Italian dish.</p>
+                        <table class="recipe-table">
+                            <tr>
+                                <th>Ingredient</th>
+                                <th>Quantity</th>
+                            </tr>
+                            <tr>
+                                <td>Pasta</td>
+                                <td>200g</td>
+                            </tr>
+                            <tr>
+                                <td>Tomato Sauce</td>
+                                <td>150ml</td>
+                            </tr>
+                        </table>
+                        <div class="content-tags">
+                            <span>#Italian</span>
+                            <span>#Pasta</span>
+                            <span>#Dinner</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Modals -->
+    {% block modals %}
+    <!-- Daily Calendar Modal -->
+    <div
+      id="dailyCalModal"
+      class="fixed inset-0 bg-gray-800 bg-opacity-75 hidden flex items-center justify-center z-50"
+      onclick="closeModal(event)"
+    >
+        <div
+          class="bg-white rounded-lg shadow-lg overflow-hidden w-3/4 max-w-4xl"
+          onclick="event.stopPropagation()"
+        >
+            <div class="flex justify-between items-center p-4 border-b">
+                <div>
+                    <h2 class="text-lg font-semibold">Scheduled For Today</h2>
+                </div>
+            </div>
+            <div class="modal-content p-4">
+                <div id="modal-calendar-events" class="w-full max-h-[70vh] overflow-y-auto">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin"></i> Loading events...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/google/google_appsScripts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/googleAPI/google_api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/googleAPI/google_tasks.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+
+    <!-- Modal and other interactions -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load Calendar Data
+            google.script.run.withSuccessHandler(updateCalendar).getDailyCalendarEvents();
+
+            // Load Email Data
+            google.script.run.withSuccessHandler(updateInbox).getGmailInbox();
+        });
+
+        function openDailyCalModal() {
+            const modal = document.getElementById('dailyCalModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                google.script.run.withSuccessHandler(updateModalCalendar).getDailyCalendarEvents();
+            }
+        }
+
+        function closeModal(event) {
+            const modal = document.getElementById('dailyCalModal');
+            if (event.target === modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function updateCalendar(response) {
+            if (response.status === 'success') {
+                const calendarContainer = document.getElementById('calendar-events');
+                calendarContainer.innerHTML = response.data
+                  .map(event => `
+                    <div class="p-4 mb-2 border rounded-lg">
+                        <h3 class="font-semibold">${event.title}</h3>
+                        <p class="text-sm text-gray-600">
+                            ${new Date(event.startTime).toLocaleTimeString()} -
+                            ${new Date(event.endTime).toLocaleTimeString()}
+                        </p>
+                        ${
+                          event.description
+                            ? `<p class="text-sm mt-2">${event.description}</p>`
+                            : ''
+                        }
+                    </div>
+                  `)
+                  .join('');
+            }
+        }
+
+        function updateModalCalendar(response) {
+            if (response.status === 'success') {
+                const modalCalendarContainer = document.getElementById('modal-calendar-events');
+                modalCalendarContainer.innerHTML = response.data
+                  .map(event => `
+                    <div class="p-4 mb-2 border rounded-lg">
+                        <h3 class="font-semibold">${event.title}</h3>
+                        <p class="text-sm text-gray-600">
+                            ${new Date(event.startTime).toLocaleTimeString()} -
+                            ${new Date(event.endTime).toLocaleTimeString()}
+                        </p>
+                        ${
+                          event.description
+                            ? `<p class="text-sm mt-2">${event.description}</p>`
+                            : ''
+                        }
+                    </div>
+                  `)
+                  .join('');
+            }
+        }
+
+        function updateInbox(response) {
+            if (response.status === 'success') {
+                const emailContainer = document.getElementById('email-list');
+                emailContainer.innerHTML = response.data
+                  .map(email => `
+                    <div
+                      class="p-4 border-b hover:bg-gray-50 cursor-pointer ${
+                        email.unread ? 'font-semibold bg-blue-50' : ''
+                      }"
+                    >
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">${email.from}</span>
+                            <span class="text-xs text-gray-500">
+                                ${new Date(email.date).toLocaleDateString()}
+                            </span>
+                        </div>
+                        <div class="mt-1 text-sm">${email.subject}</div>
+                        <div class="mt-1 text-xs text-gray-500">${email.snippet}...</div>
+                    </div>
+                  `)
+                  .join('');
+            }
+        }
+    </script>
+
+    <!-- Welcome Message Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Welcome Message Configuration
+        const welcomeElement = document.getElementById('welcome-message');
+        const currentTimeElement = document.getElementById('current-time');
+        const displayName = "{{ display_name }}" || "Colleague";  // Fallback handled server-side
+
+        function getTimeBasedGreeting() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+
+            // Time thresholds (4:00 AM - 11:30 AM, 11:30 AM - 5:00 PM)
+            if (totalMinutes >= 240 && totalMinutes < 690) return 'Good Morning';
+            if (totalMinutes >= 690 && totalMinutes < 1020) return 'Good Afternoon';
+            return 'Good Evening';
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-AU', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true
+            }).replace(/^0(?:0:0?)?/, '');  // Remove leading zero for midnight
+        }
+
+        function updateWelcomeMessage() {
+            try {
+                const now = new Date();
+                const greeting = getTimeBasedGreeting();
+                
+                // DOM Updates
+                welcomeElement.textContent = `${greeting}, ${displayName.trim()}!`;
+                currentTimeElement.textContent = formatTime(now);
+            } catch (error) {
+                console.error('Welcome message error:', error);
+                welcomeElement.textContent = 'Welcome!';
+            }
+        }
+
+        // Initialize and update every minute
+        updateWelcomeMessage();
+        setInterval(updateWelcomeMessage, 60000);
+    });
+    </script>
+
+    <!-- Additional scripts block -->
+    {% block extra_scripts %}
+	<!-- Scripts -->
+    <!-- Google API Scripts -->
+	<script src="{{ url_for('static', filename='js/google/Oauth') }}"></script>
+    <script src="{{ url_for('static', filename='js/googleAPI/google_appsScripts') }}"></script>
+    <script src="{{ url_for('static', filename='js/googleApi/google_api') }}"></script>
+
+    <!-- Calendar Component Scripts -->
+    <script src="{{ url_for('static', filename='js/google/calendarG.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/google/mailG.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/google/tasksG.js') }}"></script>
+
+    <!-- Core Scripts -->
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+
+    <!-- Inject Google API Credentials for the Calendar Component -->
+    <script>
+        const CLIENT_ID = "{{ client_id }}";
+        const API_KEY = "{{ api_key }}";
+    </script>
+	{% endblock %}
+</body>
+</html>
